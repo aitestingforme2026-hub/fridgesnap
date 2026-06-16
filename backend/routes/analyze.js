@@ -79,9 +79,7 @@ router.post(
     try {
       ingredients = await analyzeImage(buffer.toString('base64'), mimeType, controller.signal);
     } catch (err) {
-      // Do not leak any internal error detail (could contain key info).
-      // Specifically do NOT log err here — it may contain the base64 string
-      // in its request payload on some SDK versions.
+      console.error('[FridgeSnap] analyze error:', err.message, err.status || '');
       const isTimeout = err.name === 'AbortError' || controller.signal.aborted;
       return res.status(503).json({
         error: 'analysis_unavailable',
