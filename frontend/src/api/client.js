@@ -3,9 +3,7 @@
  * All calls go through the local proxy — no API keys in client code.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : '/api';
+const BASE_URL = '/api';
 
 /**
  * Analyze a fridge image for ingredients.
