@@ -123,7 +123,47 @@ async function analyzeImage(base64Image, mimeType, signal) {
 // ─── Recipe Generation ────────────────────────────────────────────────────────
 
 /**
- * Build a system prompt that enforces the correct unit system.
+ * Return the negative-example enforcement block for a given meal type.
+ * These concrete counter-examples are far more effective than vague rules.
+ *
+ * @param {string} mealType
+ * @returns {string}
+ */
+function _mealTypeNegativeExamples(mealType) {
+  const examples = {
+    dessert:
+      'Asparagus tarts are NOT a dessert. Omelettes are NOT a dessert. ' +
+      'Pasta dishes are NOT a dessert. Soups are NOT a dessert. ' +
+      'ONLY generate sweet recipes — cakes, cookies, puddings, ice creams, ' +
+      'tarts with sweet fillings, mousses, etc.',
+    breakfast:
+      'Steak dinners are NOT breakfast. Heavy pasta dishes are NOT breakfast. ' +
+      'Curries are NOT breakfast. ' +
+      'ONLY generate morning-appropriate dishes — eggs, pancakes, porridge, ' +
+      'toast-based dishes, smoothies, granola, etc.',
+    lunch:
+      'Heavy 3-course dinners are NOT lunch. Elaborate dessert platters are NOT lunch. ' +
+      'Full roast dinners are NOT lunch. ' +
+      'ONLY generate midday-appropriate dishes — salads, sandwiches, light mains, ' +
+      'soups, wraps, grain bowls, etc.',
+    dinner:
+      'Breakfast cereals are NOT dinner. Light snacks are NOT dinner. ' +
+      'Pastries and muffins are NOT dinner. ' +
+      'ONLY generate substantial evening meals — roasts, pasta mains, curries, ' +
+      'grilled proteins, hearty stews, etc.',
+    snack:
+      'Full roast dinners are NOT snacks. Multi-course meals are NOT snacks. ' +
+      'Heavy casseroles are NOT snacks. ' +
+      'ONLY generate small, quick bites — dips, crackers, energy balls, ' +
+      'bruschetta, small bites, trail mixes, etc.',
+  };
+  return examples[mealType] ?? `ONLY generate ${mealType} dishes.`;
+}
+
+/**
+ * Build a system prompt that enforces the correct unit system and, when a
+ * mealType is supplied, opens with a loud non-negotiable meal-type constraint
+ * block before any other instruction.
  */
 function buildRecipeSystemPrompt(units, mealType) {
   const unitSpec =
@@ -132,7 +172,13 @@ function buildRecipeSystemPrompt(units, mealType) {
       : 'grams (g), millilitres (ml), and Celsius (°C)';
 
   const mealTypeConstraint = mealType
-    ? `RULE #1 — STRICT: Generate ONLY ${mealType} recipes. Any recipe that is not a ${mealType} dish must be excluded. This overrides all other instructions.\n\n`
+    ? `CRITICAL RULE #1 — NON-NEGOTIABLE: You are generating ${mealType} recipes ONLY.
+Every single recipe you generate MUST be a ${mealType} dish.
+If a recipe is not a ${mealType} dish, do NOT include it — discard it entirely.
+${_mealTypeNegativeExamples(mealType)}
+This meal-type rule overrides every other instruction in this prompt.
+
+`
     : '';
 
   return `${mealTypeConstraint}You are a professional chef with 20 years of experience in home cooking.
