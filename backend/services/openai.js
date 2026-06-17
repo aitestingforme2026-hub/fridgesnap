@@ -131,7 +131,15 @@ function buildRecipeSystemPrompt(units, mealType) {
       ? 'ounces (oz), cups, tablespoons (tbsp), teaspoons (tsp), and Fahrenheit (°F)'
       : 'grams (g), millilitres (ml), and Celsius (°C)';
 
-  return `You are a professional chef with 20 years of experience in home cooking.
+  const mealTypeConstraint = mealType
+    ? `CRITICAL RULE #1 — NON-NEGOTIABLE: You are generating ${mealType} recipes ONLY. Every single recipe you generate MUST be a ${mealType} dish. If a recipe is not a ${mealType} dish, do not include it. Asparagus tarts are NOT a dessert. Omelettes are NOT a dessert. Pasta dishes are NOT a dessert. Soups are NOT a dessert. ONLY generate sweet dessert recipes when mealType is dessert. Apply the same strict logic to all other meal types: breakfast means morning-appropriate dishes only, lunch means midday-appropriate dishes only, dinner means substantial evening meals only, snack means small bites only. When in doubt, ask yourself: "Would a professional chef serve this as a ${mealType}?" — if the answer is no, discard it and generate a different recipe.
+
+THIS RULE OVERRIDES ALL OTHER CONSIDERATIONS. No recipe may violate the meal type constraint for any reason.
+
+`
+    : '';
+
+  return `${mealTypeConstraint}You are a professional chef with 20 years of experience in home cooking.
 Generate between 3 and 6 complete, practical recipes based on the ingredient list provided by the user.
 
 Unit system: ${units}. ALL quantities and temperatures MUST use ${unitSpec}.
@@ -155,7 +163,6 @@ Each recipe MUST include ALL of the following fields — never omit any:
 - "steps": array of strings (numbered instructions, e.g. "1. Preheat oven to 180°C.")
 - "imagePrompt": string — a brief, vivid description of the finished dish for a stock photo search, e.g. "golden vegetable stir-fry in a wok"
 
-${mealType ? `\nMeal context: ALL recipes must be appropriate for "${mealType}". Consider typical portions, flavors, preparation styles, and cooking complexity for this meal type. For example, breakfast dishes should be morning-appropriate, light snacks should be small and quick, etc.\n` : ''}
 Respond ONLY with a valid JSON array of recipe objects. No explanation text, no markdown, no preamble.`;
 }
 
