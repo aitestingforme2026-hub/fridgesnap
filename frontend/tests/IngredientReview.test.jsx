@@ -76,7 +76,7 @@ describe('IngredientReview', () => {
     fireEvent.click(eggsCheckbox);
 
     fireEvent.click(screen.getByRole('button', { name: /find recipes/i }));
-    expect(onFindRecipes).toHaveBeenCalledWith(['Milk', 'Cheese']);
+    expect(onFindRecipes).toHaveBeenCalledWith(['Milk', 'Cheese'], null);
   });
 
   it('allows adding a new ingredient via the text field', () => {
@@ -174,6 +174,6 @@ describe('IngredientReview — zero-ingredient result (AC-13)', () => {
     const findBtn = screen.getByRole('button', { name: /find recipes/i });
     expect(findBtn).not.toBeDisabled();
     fireEvent.click(findBtn);
-    expect(onFindRecipes).toHaveBeenCalledWith(['Tomato']);
+    expect(onFindRecipes).toHaveBeenCalledWith(['Tomato'], null);
   });
 });

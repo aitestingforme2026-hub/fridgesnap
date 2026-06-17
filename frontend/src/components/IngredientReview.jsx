@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import OfflineBanner from './OfflineBanner.jsx';
+import V1_MealTypeSelector from './V1_MealTypeSelector.jsx';
 
 /**
  * IngredientReview — displays detected ingredients as a checklist.
@@ -16,6 +17,7 @@ export default function IngredientReview({ ingredients, isOnline, onFindRecipes,
     })),
   );
   const [newItem, setNewItem] = useState('');
+  const [mealType, setMealType] = useState(null);
 
   const checkedCount = items.filter((i) => i.checked).length;
   const canProceed = isOnline && checkedCount > 0;
@@ -45,7 +47,7 @@ export default function IngredientReview({ ingredients, isOnline, onFindRecipes,
 
   const handleFindRecipes = () => {
     const selected = items.filter((i) => i.checked).map((i) => i.name);
-    onFindRecipes(selected);
+    onFindRecipes(selected, mealType);
   };
 
   return (
@@ -147,6 +149,8 @@ export default function IngredientReview({ ingredients, isOnline, onFindRecipes,
           </div>
         </div>
       </form>
+
+      <V1_MealTypeSelector selected={mealType} onSelect={setMealType} />
 
       <div style={{ position: 'sticky', bottom: '1rem' }}>
         <button

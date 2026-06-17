@@ -35,11 +35,14 @@ export async function analyzeImage(imageFile) {
  * @param {'metric' | 'imperial'} units
  * @returns {Promise<{ recipes: Array }>}
  */
-export async function fetchRecipes(ingredients, units) {
+export async function fetchRecipes(ingredients, units, mealType) {
+  const body = { ingredients, units };
+  if (mealType) body.mealType = mealType;
+
   const res = await fetch(`${BASE_URL}/recipes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ingredients, units }),
+    body: JSON.stringify(body),
   });
 
   if (res.status === 503) {

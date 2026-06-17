@@ -58,7 +58,7 @@ const router = express.Router();
 const VALID_UNITS = new Set(['metric', 'imperial']);
 
 router.post('/', async (req, res) => {
-  const { ingredients, units } = req.body;
+  const { ingredients, units, mealType } = req.body;
 
   // Input validation
   if (!Array.isArray(ingredients) || ingredients.length === 0) {
@@ -83,10 +83,19 @@ router.post('/', async (req, res) => {
     });
   }
 
+  const VALID_MEAL_TYPES = new Set(['breakfast', 'lunch', 'dinner', 'light snack', 'dessert']);
+  if (mealType && !VALID_MEAL_TYPES.has(mealType)) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'mealType must be one of: breakfast, lunch, dinner, light snack, dessert.',
+    });
+  }
+
   try {
     const recipes = await generateRecipes(
       ingredients.map((i) => i.trim()),
-      units
+      units,
+      mealType || null
     );
     return res.json({ recipes });
   } catch (err) {

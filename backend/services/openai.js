@@ -125,16 +125,25 @@ async function analyzeImage(base64Image, mimeType, signal) {
 /**
  * Build a system prompt that enforces the correct unit system.
  */
-function buildRecipeSystemPrompt(units) {
+function buildRecipeSystemPrompt(units, mealType) {
   const unitSpec =
     units === 'imperial'
       ? 'ounces (oz), cups, tablespoons (tbsp), teaspoons (tsp), and Fahrenheit (°F)'
       : 'grams (g), millilitres (ml), and Celsius (°C)';
 
-  return `You are a professional chef and recipe writer.
+  return `You are a professional chef with 20 years of experience in home cooking.
 Generate between 3 and 6 complete, practical recipes based on the ingredient list provided by the user.
 
 Unit system: ${units}. ALL quantities and temperatures MUST use ${unitSpec}.
+
+Quality rules — follow strictly:
+- Every recipe MUST be a real, recognizable dish that people actually cook and eat. No invented or fictional food names.
+- Ingredients must combine in ways that make culinary sense. Never pair ingredients that taste bad together.
+- If the provided ingredients cannot form a coherent dish, use fewer of them rather than forcing a nonsensical combination.
+- Assume the user has basic pantry staples available: salt, pepper, cooking oil, butter, flour, sugar, garlic, onion. You may include these in recipes even if the user did not list them.
+- Steps must be specific and actionable: include heat levels (e.g. "medium-high heat"), timing (e.g. "about 3 minutes"), and visual cues (e.g. "until golden brown").
+- Do NOT repeat the same base dish with minor variations. Each recipe must be meaningfully different in cooking method or cuisine style.
+- Portions and quantities must be realistic for the stated number of servings.
 
 Each recipe MUST include ALL of the following fields — never omit any:
 - "name": string
@@ -144,8 +153,9 @@ Each recipe MUST include ALL of the following fields — never omit any:
   * Automatically include "Quick & Easy" if cookTime is 30 minutes or less.
 - "ingredients": array of { "item": string, "quantity": number | string, "unit": string }
 - "steps": array of strings (numbered instructions, e.g. "1. Preheat oven to 180°C.")
-- "imagePrompt": string — a brief description for a stock photo, e.g. "golden vegetable stir-fry in a wok"
+- "imagePrompt": string — a brief, vivid description of the finished dish for a stock photo search, e.g. "golden vegetable stir-fry in a wok"
 
+${mealType ? `\nMeal context: ALL recipes must be appropriate for "${mealType}". Consider typical portions, flavors, preparation styles, and cooking complexity for this meal type. For example, breakfast dishes should be morning-appropriate, light snacks should be small and quick, etc.\n` : ''}
 Respond ONLY with a valid JSON array of recipe objects. No explanation text, no markdown, no preamble.`;
 }
 
@@ -244,7 +254,7 @@ function normaliseRecipe(recipe, units) {
  * @param {number} [count] - When provided, request exactly this many recipes
  *   (used during retry to generate only the missing replacements).
  */
-async function _callRecipeGeneration(client, ingredients, units, count) {
+async function _callRecipeGeneration(client, ingredients, units, count, mealType) {
   const countInstruction = count
     ? `Generate exactly ${count} recipe${count === 1 ? '' : 's'}`
     : 'Generate between 3 and 6 recipes';
@@ -255,7 +265,7 @@ async function _callRecipeGeneration(client, ingredients, units, count) {
     messages: [
       {
         role: 'system',
-        content: buildRecipeSystemPrompt(units),
+        content: buildRecipeSystemPrompt(units, mealType),
       },
       {
         role: 'user',
@@ -280,12 +290,12 @@ async function _callRecipeGeneration(client, ingredients, units, count) {
  * @param {'metric'|'imperial'} units
  * @returns {Promise<Array>}
  */
-async function generateRecipes(ingredients, units) {
+async function generateRecipes(ingredients, units, mealType) {
   const client = getClient();
 
   let firstPassRecipes;
   try {
-    firstPassRecipes = await _callRecipeGeneration(client, ingredients, units);
+    firstPassRecipes = await _callRecipeGeneration(client, ingredients, units, undefined, mealType);
   } catch (err) {
     throw err; // surface as 503 upstream
   }
@@ -313,7 +323,8 @@ async function generateRecipes(ingredients, units) {
         client,
         ingredients,
         units,
-        invalidCount  // hint: how many replacements we need
+        invalidCount,
+        mealType
       );
       for (const recipe of retryRecipes) {
         if (isCompleteRecipe(recipe)) {

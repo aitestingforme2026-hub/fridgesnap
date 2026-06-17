@@ -1,19 +1,6 @@
 import { useState } from 'react';
 import LegalDisclaimer from './LegalDisclaimer.jsx';
-
-/** Deterministic colour — same logic as RecipeResults */
-function placeholderColor(name = '') {
-  const colours = [
-    '#2d6a4f', '#1b4332', '#40916c', '#52b788',
-    '#1d3557', '#457b9d', '#e63946', '#c77dff',
-    '#f77f00', '#588157',
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
-  }
-  return colours[Math.abs(hash) % colours.length];
-}
+import V1_RecipeImage from './V1_RecipeImage.jsx';
 
 /**
  * RecipeDetail — full recipe view with ingredient checklist and numbered steps.
@@ -28,35 +15,13 @@ export default function RecipeDetail({ recipe, onBack }) {
     setCheckedIngredients((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  const bgColor = placeholderColor(recipe.name);
-
   return (
     <main className="screen" aria-label={`Recipe: ${recipe.name}`} style={{ padding: 0 }}>
-      {/* Hero placeholder */}
-      <div
-        style={{
-          background: bgColor,
-          width: '100%',
-          aspectRatio: '16 / 9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem',
-        }}
-        role="img"
-        aria-label={recipe.imagePrompt || `Photo of ${recipe.name}`}
-      >
-        <span
-          style={{
-            color: 'rgba(255,255,255,0.9)',
-            fontSize: 'var(--font-size-sm)',
-            textAlign: 'center',
-            fontWeight: 500,
-          }}
-        >
-          {recipe.imagePrompt || recipe.name}
-        </span>
-      </div>
+      <V1_RecipeImage
+        imagePrompt={recipe.imagePrompt}
+        recipeName={recipe.name}
+        style={{ borderRadius: 0 }}
+      />
 
       <div style={{ padding: '1.25rem 1rem' }}>
         {/* Back link */}

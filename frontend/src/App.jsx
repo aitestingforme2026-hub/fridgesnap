@@ -90,7 +90,7 @@ export default function App() {
     }
   };
 
-  const handleFindRecipes = async (selectedIngredients) => {
+  const handleFindRecipes = async (selectedIngredients, mealType) => {
     if (!isOnline) {
       setOfflineError('You appear to be offline. Please check your connection and try again.');
       return;
@@ -100,7 +100,7 @@ export default function App() {
     setScreen(SCREENS.LOADING_RECIPES);
 
     try {
-      const data = await fetchRecipes(selectedIngredients, unit);
+      const data = await fetchRecipes(selectedIngredients, unit, mealType);
       setRecipes(data.recipes || []);
       setScreen(SCREENS.RECIPES);
     } catch (err) {

@@ -1,20 +1,7 @@
 import { useState } from 'react';
 import FilterBar from './FilterBar.jsx';
 import OfflineBanner from './OfflineBanner.jsx';
-
-/** Deterministic colour from recipe name (no external images) */
-function placeholderColor(name = '') {
-  const colours = [
-    '#2d6a4f', '#1b4332', '#40916c', '#52b788',
-    '#1d3557', '#457b9d', '#e63946', '#c77dff',
-    '#f77f00', '#588157',
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
-  }
-  return colours[Math.abs(hash) % colours.length];
-}
+import V1_RecipeImage from './V1_RecipeImage.jsx';
 
 /**
  * RecipeResults — grid of recipe cards with client-side category filtering.
@@ -123,19 +110,10 @@ export default function RecipeResults({ recipes, isOnline, onSelectRecipe, onBac
           aria-label={`${visibleRecipes.length} recipe${visibleRecipes.length !== 1 ? 's' : ''} found`}
         >
           {visibleRecipes.map((recipe, idx) => {
-            const bgColor = placeholderColor(recipe.name);
             return (
               <li key={recipe.name + idx}>
                 <article className="card">
-                  {/* Placeholder colour block — no external image URLs */}
-                  <div
-                    className="recipe-placeholder-img"
-                    style={{ background: bgColor }}
-                    role="img"
-                    aria-label={recipe.imagePrompt || `Photo of ${recipe.name}`}
-                  >
-                    <span>{recipe.imagePrompt || recipe.name}</span>
-                  </div>
+                  <V1_RecipeImage imagePrompt={recipe.imagePrompt} recipeName={recipe.name} />
 
                   <div style={{ padding: '1rem' }}>
                     <h2
