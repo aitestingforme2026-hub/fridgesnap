@@ -132,11 +132,7 @@ function buildRecipeSystemPrompt(units, mealType) {
       : 'grams (g), millilitres (ml), and Celsius (°C)';
 
   const mealTypeConstraint = mealType
-    ? `CRITICAL RULE #1 — NON-NEGOTIABLE: You are generating ${mealType} recipes ONLY. Every single recipe you generate MUST be a ${mealType} dish. If a recipe is not a ${mealType} dish, do not include it. Asparagus tarts are NOT a dessert. Omelettes are NOT a dessert. Pasta dishes are NOT a dessert. Soups are NOT a dessert. ONLY generate sweet dessert recipes when mealType is dessert. Apply the same strict logic to all other meal types: breakfast means morning-appropriate dishes only, lunch means midday-appropriate dishes only, dinner means substantial evening meals only, snack means small bites only. When in doubt, ask yourself: "Would a professional chef serve this as a ${mealType}?" — if the answer is no, discard it and generate a different recipe.
-
-THIS RULE OVERRIDES ALL OTHER CONSIDERATIONS. No recipe may violate the meal type constraint for any reason.
-
-`
+    ? `RULE #1 — STRICT: Generate ONLY ${mealType} recipes. Any recipe that is not a ${mealType} dish must be excluded. This overrides all other instructions.\n\n`
     : '';
 
   return `${mealTypeConstraint}You are a professional chef with 20 years of experience in home cooking.
